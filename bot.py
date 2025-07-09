@@ -4,21 +4,24 @@ from discord import app_commands
 import requests
 import json
 import os
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# ✅ Load from .env if it exists (local development)
+if os.path.exists(".env"):
+    from dotenv import load_dotenv
+    load_dotenv()
+
+# ✅ Load environment variables (from .env or Railway variables)
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
 TWITCH_CLIENT_SECRET = os.getenv("TWITCH_CLIENT_SECRET")
 
-# Setup bot
+# ✅ Discord setup
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# Load or initialize nakama
+# ✅ Load or create nakama.json
 try:
     with open("nakama.json", "r") as f:
         nakama = json.load(f)
@@ -57,7 +60,8 @@ def is_user_live(username, token):
 @client.event
 async def on_ready():
     print(f"⚓ NakamaBot has boarded the Sunny as {client.user}")
-    await tree.sync()
+    synced = await tree.sync()
+    print(f"🔁 Synced {len(synced)} slash commands.")
     check_streams.start()
 
 @tree.command(name="nakama", description="Join the crew and register your Twitch username")
@@ -72,20 +76,17 @@ async def register_nakama(interaction: discord.Interaction, twitch_username: str
 @tasks.loop(minutes=1)
 async def check_streams():
     if not nakama:
-        print("No nakama registered.")
+        print("🕵️ No nakama registered.")
         return
 
     token = get_twitch_token()
-    print("Twitch token acquired.")
+    print("🪙 Twitch token acquired.")
     channel = client.get_channel(DISCORD_CHANNEL_ID)
 
     for user_id, twitch_username in nakama.items():
         print(f"🔍 Checking Twitch user: {twitch_username}")
         stream = is_user_live(twitch_username, token)
-        if stream:
-            print(f"✅ {twitch_username} is live!")
-        else:
-            print(f"❌ {twitch_username} is offline.")
+        print(f"📡 Stream data: {stream}")
 
         if stream and twitch_username not in currently_live:
             currently_live.add(twitch_username)
