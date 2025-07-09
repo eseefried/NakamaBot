@@ -12,7 +12,7 @@ if os.path.exists(".env"):
 
 # ✅ Load environment variables (from .env or Railway variables)
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-DISCORD_CHANNEL_ID = os.getenv("DISCORD_CHANNEL_ID")
+DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
 TWITCH_CLIENT_SECRET = os.getenv("TWITCH_CLIENT_SECRET")
 
